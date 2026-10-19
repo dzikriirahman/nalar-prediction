@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101b2d">
+  <meta name="description" content="NALAR — pencatatan peristiwa, kebiasaan, variabel, dan prediksi berbasis data.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>NALAR — Prediction Studio</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: light-dark(#f3f6fa, #0c1422);
+      --panel: light-dark(#ffffff, #131f30);
+      --panel-2: light-dark(#f7f9fc, #1a2940);
+      --ink: light-dark(#132238, #edf3fb);
+      --muted: light-dark(#66758a, #9baac0);
+      --line: light-dark(#e1e7ef, #29394f);
+      --accent: light-dark(#176b87, #55c1d5);
+      --accent-2: light-dark(#e0f2f6, #163b4b);
+      --good: light-dark(#147a58, #66d2a5);
+      --warn: light-dark(#9a6512, #edc16d);
+      --bad: light-dark(#ad4545, #ff9292);
+      --shadow: 0 12px 34px rgba(20, 39, 64, .08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; min-height: 100dvh; background: var(--bg); padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .topbar { position: sticky; top: 0; z-index: 20; padding: calc(12px + env(safe-area-inset-top)) 18px 12px; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
+    .top-inner { max-width: 1040px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-mark { width: 39px; height: 39px; border-radius: 13px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg, #1d7890, #243b69); font-size: 18px; font-weight: 800; letter-spacing: -.06em; box-shadow: 0 6px 16px rgba(23,107,135,.2); }
+    .brand-name { font-size: 17px; font-weight: 800; letter-spacing: .12em; }
+    .brand-sub { color: var(--muted); font-size: 10px; letter-spacing: .12em; margin-top: 2px; }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
+    .icon-btn { width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--panel); display: grid; place-items: center; }
+    .content { width: min(100% - 28px, 1000px); margin: 0 auto; padding: 22px 0 28px; }
+    .eyebrow { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { font-size: clamp(25px, 6vw, 34px); line-height: 1.08; letter-spacing: -.045em; margin: 8px 0 9px; }
+    h2 { font-size: 18px; letter-spacing: -.025em; margin: 0; }
+    h3 { font-size: 14px; margin: 0; }
+    p { line-height: 1.55; }
+    .lead { color: var(--muted); margin: 0; font-size: 13px; max-width: 620px; }
+    .hero { padding: 10px 2px 20px; }
+    .hero-row { display: flex; justify-content: space-between; align-items: end; gap: 14px; }
+    .date-chip { white-space: nowrap; color: var(--muted); font-size: 11px; padding: 8px 10px; border: 1px solid var(--line); background: var(--panel); border-radius: 99px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 13px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); min-width: 0; }
+    .metric { grid-column: span 3; }
+    .metric-label { color: var(--muted); font-size: 11px; }
+    .metric-value { font-size: 26px; font-weight: 800; letter-spacing: -.04em; margin-top: 8px; }
+    .metric-foot { color: var(--muted); font-size: 10px; margin-top: 4px; }
+    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 22px 2px 11px; }
+    .section-head small { color: var(--muted); font-size: 11px; }
+    .wide { grid-column: span 8; }
+    .side { grid-column: span 4; }
+    .half { grid-column: span 6; }
+    .full { grid-column: 1 / -1; }
+    .chart-wrap { min-height: 180px; position: relative; margin-top: 13px; }
+    .chart-svg { width: 100%; height: 185px; overflow: visible; }
+    .chart-label { fill: var(--muted); font-size: 10px; }
+    .legend { display: flex; gap: 14px; color: var(--muted); font-size: 10px; margin-top: 6px; flex-wrap: wrap; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; background: var(--accent); }
+    .dot.gray { background: var(--muted); }
+    .dot.gold { background: #c58a34; }
+    .empty { color: var(--muted); background: var(--panel-2); border: 1px dashed var(--line); border-radius: 14px; padding: 18px; font-size: 12px; line-height: 1.6; }
+    .row-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 11px; }
+    .pill { font-size: 10px; padding: 5px 8px; border-radius: 99px; background: var(--accent-2); color: var(--accent); font-weight: 700; white-space: nowrap; }
+    .btn { border: 1px solid var(--line); border-radius: 12px; padding: 10px 13px; color: var(--ink); background: var(--panel); font-size: 12px; font-weight: 700; }
+    .btn.primary { border-color: transparent; background: var(--accent); color: #fff; }
+    .btn.soft { background: var(--accent-2); color: var(--accent); border-color: transparent; }
+    .btn.danger { color: var(--bad); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .field.span2 { grid-column: 1 / -1; }
+    label { color: var(--muted); font-size: 11px; font-weight: 650; }
+    input, select, textarea { width: 100%; min-width: 0; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; color: var(--ink); background: var(--panel-2); outline: none; font-size: 13px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+    textarea { min-height: 76px; resize: vertical; }
+    .form-note { color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .table-list { display: flex; flex-direction: column; gap: 8px; }
+    .data-item { padding: 12px; background: var(--panel-2); border-radius: 13px; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+    .data-title { font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
+    .data-meta { color: var(--muted); font-size: 10px; margin-top: 4px; line-height: 1.45; }
+    .data-count { font-size: 18px; font-weight: 800; text-align: right; }
+    .subnav { display: flex; gap: 6px; padding: 5px; border: 1px solid var(--line); background: var(--panel); border-radius: 14px; overflow-x: auto; margin: 16px 0 14px; }
+    .subnav button { white-space: nowrap; border: 0; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; padding: 9px 12px; border-radius: 10px; }
+    .subnav button.active { background: var(--accent-2); color: var(--accent); }
+    .nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--panel) 94%, transparent); border-top: 1px solid var(--line); backdrop-filter: blur(20px); }
+    .nav-inner { max-width: 620px; margin: auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+    .nav button { border: 0; background: transparent; color: var(--muted); padding: 7px 3px 5px; border-radius: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; }
+    .nav button.active { color: var(--accent); background: var(--accent-2); }
+    .nav .nav-icon { font-size: 17px; line-height: 1; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .result-number { font-size: 36px; font-weight: 850; letter-spacing: -.055em; margin: 9px 0 4px; }
+    .result-range { display: inline-block; font-size: 11px; border-radius: 9px; padding: 7px 9px; background: var(--accent-2); color: var(--accent); font-weight: 750; }
+    .method-row { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; justify-content: space-between; align-items: center; font-size: 11px; }
+    .method-row:last-child { border-bottom: 0; }
+    .method-name { font-weight: 700; }
+    .confidence { color: var(--good); font-weight: 750; }
+    .warning { color: var(--warn); }
+    .toast { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom)); transform: translate(-50%, 15px); opacity: 0; pointer-events: none; z-index: 60; color: #fff; background: #17283b; padding: 11px 15px; border-radius: 12px; font-size: 12px; box-shadow: var(--shadow); transition: .22s ease; max-width: calc(100% - 32px); text-align: center; }
+    .toast.show { opacity: 1; transform: translate(-50%,0); }
+    .variable-chip { display: flex; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 11px; background: var(--panel-2); border: 1px solid var(--line); }
+    .variable-chip input { max-width: 120px; text-align: right; padding: 8px; }
+    .divider { height: 1px; background: var(--line); margin: 14px 0; }
+    .info-box { border-left: 3px solid var(--accent); background: var(--accent-2); border-radius: 0 11px 11px 0; padding: 11px 12px; font-size: 11px; line-height: 1.55; color: var(--ink); }
+    .footer-note { text-align: center; color: var(--muted); font-size: 10px; padding: 22px 8px 5px; line-height: 1.6; }
+    .hide { display: none !important; }
+    @media (max-width: 700px) {
+      .metric { grid-column: span 6; }
+      .wide, .side, .half { grid-column: 1 / -1; }
+      .hero-row { align-items: start; flex-direction: column; }
+      .date-chip { display: none; }
+      .content { width: min(100% - 24px, 1000px); padding-top: 18px; }
+      .card { padding: 14px; }
+    }
+    @media (min-width: 900px) {
+      .app { padding-bottom: 28px; }
+      .nav { position: sticky; top: 64px; bottom: auto; border-top: 0; border-bottom: 1px solid var(--line); padding: 7px 18px; }
+      .nav-inner { max-width: 1000px; grid-template-columns: repeat(4,auto); justify-content: start; }
+      .nav button { flex-direction: row; padding: 10px 15px; font-size: 11px; gap: 8px; }
+      .nav .nav-icon { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="appRoot">
+    <header class="topbar">
+      <div class="top-inner">
+        <div class="brand">
+          <div class="brand-mark">N</div>
+          <div><div class="brand-name">NALAR</div><div class="brand-sub">PREDICTION STUDIO · BETA</div></div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="installBtn" aria-label="Pasang aplikasi" title="Pasang aplikasi">＋</button>
+          <button class="icon-btn" id="themeBtn" aria-label="Ganti tema" title="Ganti tema">◐</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="nav" aria-label="Navigasi utama">
+      <div class="nav-inner">
+        <button class="active" data-view="dashboard"><span class="nav-icon">▦</span>Ringkasan</button>
+        <button data-view="data"><span class="nav-icon">＋</span>Data hitungan</button>
+        <button data-view="variables"><span class="nav-icon">◇</span>Variabel</button>
+        <button data-view="forecast"><span class="nav-icon">⌁</span>Prediksi</button>
+      </div>
+    </nav>
+
+    <main class="content">
+      <section id="view-dashboard" class="view active">
+        <div class="hero">
+          <div class="hero-row">
+            <div><div class="eyebrow">Observe · Measure · Anticipate</div><h1>Membaca pola,<br>mengukur kemungkinan.</h1><p class="lead">Catat peristiwa, kebiasaan, dan variabel. NALAR membantu menghitung kecenderungan dari data yang Anda masukkan.</p></div>
+            <div class="date-chip" id="todayLabel">—</div>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="card metric"><div class="metric-label">Total observasi</div><div class="metric-value" id="metricObs">0</div><div class="metric-foot">Baris data tersimpan</div></div>
+          <div class="card metric"><div class="metric-label">Jenis seri</div><div class="metric-value" id="metricSeries">0</div><div class="metric-foot">Peristiwa atau kebiasaan</div></div>
+          <div class="card metric"><div class="metric-label">Variabel</div><div class="metric-value" id="metricVars">0</div><div class="metric-foot">Angka dan konteks</div></div>
+          <div class="card metric"><div class="metric-label">Rentang data</div><div class="metric-value" id="metricDays">—</div><div class="metric-foot">Hari tercatat</div></div>
+          <div class="card wide">
+            <div class="row-between"><div><h2>Aktivitas tercatat</h2><div class="small muted">Jumlah per seri dari observasi terbaru</div></div><span class="pill">DATA ANDA</span></div>
+            <div id="dashboardChart" class="chart-wrap"><div class="empty">Belum ada data. Tambahkan minimal beberapa hitungan untuk melihat pola.</div></div>
+            <div class="legend"><span><i class="dot"></i>Jumlah aktual</span><span><i class="dot gray"></i>Rata-rata seri</span></div>
+          </div>
+          <div class="card side">
+            <div class="row-between"><h2>Seri utama</h2><span class="small muted">Top 5</span></div>
+            <div id="topSeries" class="table-list" style="margin-top:12px"><div class="empty">Belum ada seri yang dicatat.</div></div>
+          </div>
+          <div class="card full">
+            <div class="row-between"><h2>Mulai dari sini</h2><span class="pill">PANDUAN</span></div>
+            <div class="grid" style="margin-top:13px">
+              <div class="half"><div class="eyebrow">01 · Catat</div><h3 style="margin:5px 0">Masukkan hitungan</h3><p class="small muted">Tulis nama kegiatan/peristiwa, tanggal, jenis, dan jumlah kejadian pada periode tersebut.</p><button class="btn soft" data-go="data">Tambah data →</button></div>
+              <div class="half"><div class="eyebrow">02 · Kontekstualkan</div><h3 style="margin:5px 0">Tambahkan variabel</h3><p class="small muted">Contoh: jam tidur, suhu, jumlah pelanggan, biaya, atau faktor lain yang ingin diamati.</p><button class="btn soft" data-go="variables">Atur variabel →</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-data" class="view">
+        <div class="hero"><div class="eyebrow">Data collection</div><h1>Catat observasi.</h1><p class="lead">Satu baris untuk satu seri pada satu periode. Gunakan periode yang konsisten, misalnya harian atau mingguan.</p></div>
+        <div class="grid">
+          <div class="card full">
+            <div class="row-between"><h2>Tambah data hitungan</h2><span class="pill">INPUT MANUAL</span></div>
+            <form id="observationForm" style="margin-top:14px">
+              <div class="form-grid">
+                <div class="field"><label for="obsDate">Tanggal observasi</label><input id="obsDate" type="date" required></div>
+                <div class="field"><label for="obsType">Jenis</label><select id="obsType"><option value="Peristiwa">Peristiwa</option><option value="Kebiasaan">Kebiasaan</option><option value="Lainnya">Lainnya</option></select></div>
+                <div class="field span2"><label for="obsSeries">Nama peristiwa / kebiasaan</label><input id="obsSeries" placeholder="Contoh: olahraga, hujan, pelanggan toko" maxlength="60" required></div>
+                <div class="field"><label for="obsCount">Jumlah hitungan</label><input id="obsCount" type="number" inputmode="decimal" min="0" step="any" placeholder="Contoh: 4" required></div>
+                <div class="field"><label for="obsPeriod">Satuan periode</label><select id="obsPeriod"><option value="Harian">Harian</option><option value="Mingguan">Mingguan</option><option value="Bulanan">Bulanan</option><option value="Tidak tetap">Tidak tetap</option></select></div>
+                <div class="field span2"><label for="obsNotes">Keterangan / konteks (opsional)</label><textarea id="obsNotes" placeholder="Tuliskan kejadian khusus, lokasi, kondisi, dan catatan bebas..."></textarea></div>
+              </div>
+              <div id="observationVariableInputs" style="margin-top:13px"></div>
+              <div class="btn-row" style="margin-top:15px"><button class="btn primary" type="submit">Simpan observasi</button><button class="btn" type="reset">Kosongkan</button></div>
+            </form>
+          </div>
+          <div class="card full">
+            <div class="row-between"><h2>Riwayat observasi</h2><span class="small muted" id="observationCount">0 catatan</span></div>
+            <div id="observationList" class="table-list" style="margin-top:12px"><div class="empty">Catatan yang disimpan akan muncul di sini.</div></div>
+          </div>
+          <div class="card full">
+            <div class="row-between"><h2>Cadangkan data</h2><span class="pill">LOKAL</span></div>
+            <p class="small muted">Data tersimpan pada browser/perangkat ini. Ekspor berkala agar Anda mempunyai salinan cadangan.</p>
+            <div class="btn-row"><button class="btn" id="exportBtn">Ekspor JSON</button><button class="btn" id="exportCsvBtn">Ekspor CSV</button><label class="btn" for="importFile" style="cursor:pointer">Impor JSON</label><input id="importFile" type="file" accept="application/json,.json" class="hide"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-variables" class="view">
+        <div class="hero"><div class="eyebrow">Context variables</div><h1>Tambahkan variabel.</h1><p class="lead">Variabel dapat berupa nama dan nilai numerik, dengan satuan dan catatan. Nilai dapat dicatat bersama observasi untuk analisis hubungan.</p></div>
+        <div class="grid">
+          <div class="card half">
+            <div class="row-between"><h2>Variabel baru</h2><span class="pill">KATA + NILAI</span></div>
+            <form id="variableForm" style="margin-top:14px">
+              <div class="field"><label for="varName">Nama variabel</label><input id="varName" maxlength="45" placeholder="Contoh: jam tidur" required></div>
+              <div class="form-grid" style="margin-top:11px">
+                <div class="field"><label for="varValue">Nilai saat ini</label><input id="varValue" type="number" inputmode="decimal" step="any" placeholder="7.5" required></div>
+                <div class="field"><label for="varUnit">Satuan</label><input id="varUnit" maxlength="20" placeholder="jam, °C, rupiah"></div>
+                <div class="field span2"><label for="varDate">Tanggal nilai</label><input id="varDate" type="date" required></div>
+                <div class="field span2"><label for="varNote">Catatan (opsional)</label><textarea id="varNote" placeholder="Definisi, sumber, atau konteks nilai..."></textarea></div>
+              </div>
+              <button class="btn primary" type="submit" style="margin-top:13px">Simpan variabel</button>
+            </form>
+          </div>
+          <div class="card half">
+            <h2>Daftar variabel</h2>
+            <p class="small muted">Setiap variabel bisa memiliki nilai yang berbeda di tiap observasi.</p>
+            <div id="variableList" class="table-list" style="margin-top:12px"><div class="empty">Belum ada variabel.</div></div>
+          </div>
+          <div class="card full">
+            <h2>Bagaimana variabel dipakai?</h2>
+            <div class="info-box" style="margin-top:12px">Saat mencatat observasi, isi nilai variabel yang relevan pada tanggal tersebut. NALAR dapat menguji hubungan satu variabel numerik dengan hitungan seri apabila tersedia cukup pasangan data. Hubungan statistik bukan bukti sebab-akibat.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-forecast" class="view">
+        <div class="hero"><div class="eyebrow">Forecast engine</div><h1>Uji kemungkinan.</h1><p class="lead">Pilih seri, tentukan horizon, lalu bandingkan model yang paling sesuai dengan pola historis Anda.</p></div>
+        <div class="grid">
+          <div class="card full">
+            <div class="row-between"><h2>Parameter prediksi</h2><span class="pill">MODEL COMPARISON</span></div>
+            <div class="form-grid" style="margin-top:14px">
+              <div class="field span2"><label for="forecastSeries">Seri yang diprediksi</label><select id="forecastSeries"><option value="">Belum ada data</option></select></div>
+              <div class="field"><label for="forecastHorizon">Berapa periode ke depan?</label><input id="forecastHorizon" type="number" min="1" max="12" value="1" inputmode="numeric"></div>
+              <div class="field"><label for="forecastVariable">Variabel penjelas (opsional)</label><select id="forecastVariable"><option value="">Tanpa variabel tambahan</option></select></div>
+              <div class="field span2" id="futureVariableWrap" style="display:none"><label for="futureVariableValue">Nilai variabel untuk periode yang diprediksi</label><input id="futureVariableValue" type="number" inputmode="decimal" step="any" placeholder="Masukkan nilai perkiraan"></div>
+            </div>
+            <div class="btn-row" style="margin-top:14px"><button class="btn primary" id="runForecast">Hitung prediksi</button></div>
+            <div class="form-note" style="margin-top:9px">Agar model lebih bermakna, masukkan data berkala dan gunakan definisi seri serta satuan periode yang konsisten.</div>
+          </div>
+          <div class="card wide" id="forecastResult">
+            <div class="eyebrow">Estimated outcome</div><h2 style="margin-top:5px">Hasil prediksi</h2>
+            <div class="empty" style="margin-top:13px">Pilih seri dengan riwayat data, lalu tekan “Hitung prediksi”. Data minimal 3 observasi untuk estimasi awal; lebih banyak data akan membantu evaluasi model.</div>
+          </div>
+          <div class="card side">
+            <h2>Perbandingan metode</h2>
+            <div id="methodComparison" style="margin-top:10px"><div class="empty">Belum ada perhitungan.</div></div>
+          </div>
+          <div class="card full">
+            <h2>Metode yang tersedia</h2>
+            <div class="method-row"><span class="method-name">Rata-rata sederhana</span><span class="muted">Baseline historis</span></div>
+            <div class="method-row"><span class="method-name">Moving average</span><span class="muted">Meredam fluktuasi</span></div>
+            <div class="method-row"><span class="method-name">Weighted moving average</span><span class="muted">Bobot lebih besar pada data baru</span></div>
+            <div class="method-row"><span class="method-name">Regresi linear waktu</span><span class="muted">Membaca tren naik/turun</span></div>
+            <div class="method-row"><span class="method-name">Exponential smoothing</span><span class="muted">Respons terhadap data terbaru</span></div>
+            <div class="method-row"><span class="method-name">Regresi variabel tunggal</span><span class="muted">Uji variabel numerik berpasangan</span></div>
+            <div class="form-note" style="margin-top:12px">Model dibandingkan memakai MAE (Mean Absolute Error) dari pengujian berurutan pada data historis. Jika data terlalu sedikit, NALAR menampilkan estimasi awal dan tidak mengklaim model terbaik secara kuat. Rentang hasil adalah kisaran indikatif berbasis galat historis, bukan interval kepercayaan formal.</div>
+          </div>
+        </div>
+      </section>
+      <div class="footer-note">NALAR BETA · Prediksi adalah estimasi, bukan kepastian. Hasil bergantung pada kualitas, jumlah, dan konsistensi data yang Anda masukkan.</div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'nalar_prediction_studio_v1';
+      const state = loadState();
+      let deferredInstallPrompt = null;
+      let lastForecast = null;
+      const $ = (id) => document.getElementById(id);
+      const fmt = (n, digits = 2) => Number(n).toLocaleString('id-ID', { maximumFractionDigits: digits });
+      const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+      function loadState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          return { observations: Array.isArray(saved.observations) ? saved.observations : [], variables: Array.isArray(saved.variables) ? saved.variables : [], theme: saved.theme || 'system' };
+        } catch (e) { return { observations: [], variables: [], theme: 'system' }; }
+      }
+      function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function uid() { return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`; }
+      function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      function toast(message) { const el = $('toast'); el.textContent = message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 2400); }
+      function allSeries() { return [...new Set(state.observations.map(o => o.series))].sort((a,b) => a.localeCompare(b, 'id')); }
+      function sortedSeries(name) { return state.observations.filter(o => o.series === name).sort((a,b) => a.date.localeCompare(b.date) || (a.createdAt || '').localeCompare(b.createdAt || '')); }
+      function initDates() { $('obsDate').value = today(); $('varDate').value = today(); $('todayLabel').textContent = new Date().toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'}); }
+      function showView(view) {
+        document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.id === `view-${view}`));
+        document.querySelectorAll('.nav button').forEach(el => el.classList.toggle('active', el.dataset.view === view));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (view === 'forecast') renderForecastSelectors();
+      }
+      document.querySelectorAll('.nav button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+      document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => showView(b.dataset.go)));
+
+      $('observationForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const series = $('obsSeries').value.trim();
+        const count = Number($('obsCount').value);
+        if (!series || !Number.isFinite(count) || count < 0) return toast('Periksa nama seri dan jumlah hitungan.');
+        const variableValues = {};
+        state.variables.forEach(v => {
+          const el = document.querySelector(`[data-observation-variable="${CSS.escape(v.id)}"]`);
+          if (el && el.value !== '') variableValues[v.id] = Number(el.value);
+        });
+        state.observations.push({ id: uid(), date: $('obsDate').value, series, type: $('obsType').value, count, period: $('obsPeriod').value, notes: $('obsNotes').value.trim(), variableValues, createdAt: new Date().toISOString() });
+        saveState();
+        $('observationForm').reset(); $('obsDate').value = today();
+        renderAll(); toast('Observasi berhasil disimpan.');
+      });
+      $('observationForm').addEventListener('reset', () => setTimeout(() => { $('obsDate').value = today(); }, 0));
+
+      $('variableForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const name = $('varName').value.trim(); const value = Number($('varValue').value);
+        if (!name || !Number.isFinite(value)) return toast('Nama dan nilai variabel harus diisi.');
+        const existing = state.variables.find(v => v.name.toLowerCase() === name.toLowerCase());
+        if (existing) {
+          existing.value = value; existing.unit = $('varUnit').value.trim(); existing.date = $('varDate').value; existing.note = $('varNote').value.trim();
+          toast('Nilai variabel diperbarui.');
+        } else {
+          state.variables.push({ id: uid(), name, value, unit: $('varUnit').value.trim(), date: $('varDate').value, note: $('varNote').value.trim() });
+          toast('Variabel berhasil ditambahkan.');
+        }
+        saveState(); $('variableForm').reset(); $('varDate').value = today(); renderAll();
+      });
+
+      function renderObservationVariableInputs() {
+        const host = $('observationVariableInputs');
+        if (!state.variables.length) { host.innerHTML = '<div class="form-note">Belum ada variabel tambahan. Anda bisa membuatnya di menu Variabel.</div>'; return; }
+        host.innerHTML = `<div class="divider"></div><div class="small" style="font-weight:750;margin-bottom:9px">Nilai variabel pada observasi ini (opsional)</div><div class="form-grid">${state.variables.map(v => `<div class="field"><label>${esc(v.name)}${v.unit ? ` · ${esc(v.unit)}` : ''}</label><input type="number" step="any" inputmode="decimal" data-observation-variable="${esc(v.id)}" placeholder="Nilai tanggal ini"></div>`).join('')}</div>`;
+      }
+      function renderObservations() {
+        const list = $('observationList');
+        $('observationCount').textContent = `${state.observations.length} catatan`;
+        const obs = [...state.observations].sort((a,b) => b.date.localeCompare(a.date) || (b.createdAt || '').localeCompare(a.createdAt || ''));
+        if (!obs.length) { list.innerHTML = '<div class="empty">Catatan yang disimpan akan muncul di sini.</div>'; return; }
+        list.innerHTML = obs.map(o => `<div class="data-item"><div><div class="data-title">${esc(o.series)} <span class="pill">${esc(o.type)}</span></div><div class="data-meta">${esc(o.date)} · ${esc(o.period)}${o.notes ? ` · ${esc(o.notes)}` : ''}</div></div><div><div class="data-count">${fmt(o.count)}</div><button class="btn danger small" data-delete-observation="${esc(o.id)}" style="padding:5px 8px;margin-top:5px">Hapus</button></div></div>`).join('');
+        list.querySelectorAll('[data-delete-observation]').forEach(b => b.addEventListener('click', () => { if (confirm('Hapus observasi ini?')) { state.observations = state.observations.filter(o => o.id !== b.dataset.deleteObservation); saveState(); renderAll(); toast('Observasi dihapus.'); } }));
+      }
+      function renderVariables() {
+        const list = $('variableList');
+        if (!state.variables.length) list.innerHTML = '<div class="empty">Belum ada variabel.</div>';
+        else list.innerHTML = state.variables.map(v => `<div class="data-item"><div><div class="data-title">${esc(v.name)}</div><div class="data-meta">${esc(v.date || '—')}${v.unit ? ` · ${esc(v.unit)}` : ''}${v.note ? ` · ${esc(v.note)}` : ''}</div></div><div><div class="data-count">${fmt(v.value)}</div><button class="btn danger small" data-delete-variable="${esc(v.id)}" style="padding:5px 8px;margin-top:5px">Hapus</button></div></div>`).join('');
+        list.querySelectorAll('[data-delete-variable]').forEach(b => b.addEventListener('click', () => { if (confirm('Hapus variabel ini? Nilainya dari observasi lama juga akan dihapus.')) { const id = b.dataset.deleteVariable; state.variables = state.variables.filter(v => v.id !== id); state.observations.forEach(o => { if (o.variableValues) delete o.variableValues[id]; }); saveState(); renderAll(); toast('Variabel dihapus.'); } }));
+      }
+      function renderDashboard() {
+        $('metricObs').textContent = fmt(state.observations.length, 0);
+        $('metricSeries').textContent = fmt(allSeries().length, 0);
+        $('metricVars').textContent = fmt(state.variables.length, 0);
+        const dates = state.observations.map(o => o.date).filter(Boolean).sort();
+        $('metricDays').textContent = dates.length ? fmt(Math.max(1, Math.round((new Date(dates[dates.length-1]) - new Date(dates[0])) / 86400000) + 1),0) : '—';
+        const series = allSeries(); const top = series.map(name => ({name, total: state.observations.filter(o => o.series === name).reduce((s,o) => s + o.count, 0), n: state.observations.filter(o => o.series === name).length})).sort((a,b) => b.total-a.total).slice(0,5);
+        $('topSeries').innerHTML = top.length ? top.map(s => `<div class="method-row"><span><strong>${esc(s.name)}</strong><br><span class="muted">${s.n} observasi</span></span><strong>${fmt(s.total)}</strong></div>`).join('') : '<div class="empty">Belum ada seri yang dicatat.</div>';
+        drawDashboardChart();
+      }
+      function drawDashboardChart() {
+        const host = $('dashboardChart'); const series = allSeries().slice(0,5);
+        if (!series.length) { host.innerHTML = '<div class="empty">Belum ada data. Tambahkan minimal beberapa hitungan untuk melihat pola.</div>'; return; }
+        const w = 620, h = 175, left = 34, right = 12, top = 12, bottom = 28;
+        const values = series.map(name => state.observations.filter(o => o.series === name).sort((a,b) => a.date.localeCompare(b.date)).slice(-7));
+        const max = Math.max(1, ...values.flat().map(o => o.count));
+        const x = i => left + i * (w-left-right) / 6; const y = v => top + (h-top-bottom) * (1-v/max);
+        let svg = `<svg class="chart-svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Grafik aktivitas terbaru">`;
+        for (let i=0;i<4;i++){ const yy=top+i*(h-top-bottom)/3; svg += `<line x1="${left}" y1="${yy}" x2="${w-right}" y2="${yy}" stroke="var(--line)" stroke-dasharray="3 5"/><text x="${left-8}" y="${yy+3}" text-anchor="end" class="chart-label">${fmt(max*(1-i/3),0)}</text>`; }
+        values.forEach((arr,idx) => { const points = arr.map((o,i) => `${x(i + (7-arr.length))},${y(o.count)}`).join(' '); svg += `<polyline points="${points}" fill="none" stroke="${idx===0?'var(--accent)':idx===1?'#c58a34':idx===2?'#7286ad':idx===3?'#6b9d7a':'#a276ad'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`; arr.forEach((o,i)=>{svg += `<circle cx="${x(i+(7-arr.length))}" cy="${y(o.count)}" r="3.5" fill="${idx===0?'var(--accent)':idx===1?'#c58a34':idx===2?'#7286ad':idx===3?'#6b9d7a':'#a276ad'}"/>`;}); });
+        svg += '</svg>'; host.innerHTML = svg;
+      }
+      function renderForecastSelectors() {
+        const series = allSeries(); const ss = $('forecastSeries'); const current = ss.value;
+        ss.innerHTML = series.length ? series.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('') : '<option value="">Belum ada data</option>';
+        if (series.includes(current)) ss.value = current;
+        const vs = $('forecastVariable'); const cv = vs.value;
+        vs.innerHTML = '<option value="">Tanpa variabel tambahan</option>' + state.variables.map(v => `<option value="${esc(v.id)}">${esc(v.name)}${v.unit ? ` (${esc(v.unit)})` : ''}</option>`).join('');
+        if (state.variables.some(v => v.id === cv)) vs.value = cv;
+        $('futureVariableWrap').style.display = vs.value ? 'flex' : 'none';
+      }
+      $('forecastVariable').addEventListener('change', () => { $('futureVariableWrap').style.display = $('forecastVariable').value ? 'flex' : 'none'; });
+
+      const mean = a => a.reduce((s,v)=>s+v,0)/a.length;
+      function linearFit(xs, ys) {
+        const mx=mean(xs), my=mean(ys); let num=0, den=0;
+        for(let i=0;i<xs.length;i++){num+=(xs[i]-mx)*(ys[i]-my);den+=(xs[i]-mx)**2;}
+        if (den < 1e-10) return null;
+        const slope=num/den; return {intercept:my-slope*mx,slope,predict:x=>my+slope*(x-mx)};
+      }
+      function modelForecast(method, values, steps=1) {
+        const n=values.length; const last=values[n-1];
+        if (method==='Naive') return last;
+        if (method==='Mean') return mean(values);
+        if (method==='Moving average') return mean(values.slice(-Math.min(3,n)));
+        if (method==='Weighted moving average') { const a=values.slice(-Math.min(4,n)); let sw=0,sv=0; a.forEach((v,i)=>{const wt=i+1;sw+=wt;sv+=wt*v;}); return sv/sw; }
+        if (method==='Linear trend') { const fit=linearFit(values.map((_,i)=>i),values); return fit ? fit.predict(n-1+steps) : last; }
+        if (method==='Exponential smoothing') { const alpha=.35; let level=values[0]; for(let i=1;i<n;i++) level=alpha*values[i]+(1-alpha)*level; return level; }
+        return last;
+      }
+      const METHODS = ['Naive','Mean','Moving average','Weighted moving average','Linear trend','Exponential smoothing'];
+      function walkForwardError(name, values) {
+        const errors=[];
+        for(let i=4;i<values.length;i++) { const pred=modelForecast(name,values.slice(0,i),1); errors.push(Math.abs(values[i]-pred)); }
+        return errors.length ? mean(errors) : null;
+      }
+      function variableCandidate(rows, variableId) {
+        const paired=rows.filter(o=>o.variableValues && Number.isFinite(o.variableValues[variableId])).map(o=>({x:o.variableValues[variableId],y:o.count}));
+        if (paired.length<6) return null;
+        const errors=[];
+        for(let i=4;i<paired.length;i++){const fit=linearFit(paired.slice(0,i).map(p=>p.x),paired.slice(0,i).map(p=>p.y)); if(fit) errors.push(Math.abs(paired[i].y-fit.predict(paired[i].x)));}
+        if(!errors.length) return null;
+        const fit=linearFit(paired.map(p=>p.x),paired.map(p=>p.y));
+        return fit ? {fit,mae:mean(errors),n:paired.length} : null;
+      }
+      async function runPrediction() {
+        const name=$('forecastSeries').value; const horizon=Math.max(1,Math.min(12,Number($('forecastHorizon').value)||1));
+        if(!name) return toast('Pilih seri terlebih dahulu.');
+        const rows=sortedSeries(name); const values=rows.map(o=>Number(o.count));
+        if(values.length<3) { $('forecastResult').innerHTML='<div class="eyebrow">Estimated outcome</div><h2 style="margin-top:5px">Data belum cukup</h2><div class="empty" style="margin-top:13px">Tambahkan setidaknya 3 observasi untuk estimasi awal. Untuk membandingkan galat model dengan lebih layak, usahakan 8–12 observasi atau lebih.</div>'; $('methodComparison').innerHTML='<div class="empty">Diperlukan lebih banyak data.</div>'; return; }
+        const futureVarId=$('forecastVariable').value;
+        const candidates=METHODS.map(method=>({name:method,mae:walkForwardError(method,values),predict:()=>modelForecast(method,values,horizon)})).filter(c=>c.mae!==null);
+        let varInfo=null; let varName='';
+        if(futureVarId){
+          const varObj=state.variables.find(v=>v.id===futureVarId); varName=varObj?.name||'Variabel';
+          const futureX=Number($('futureVariableValue').value);
+          if($('futureVariableValue').value!=='' && Number.isFinite(futureX)){
+            varInfo=variableCandidate(rows,futureVarId);
+            if(varInfo) candidates.push({name:`Regresi: ${varName}`,mae:varInfo.mae,predict:()=>varInfo.fit.predict(futureX)});
+          }
+        }
+        let backendResult=null;
+        try {
+          if (location.protocol === 'http:' || location.protocol === 'https:') {
+            const response=await fetch('/api/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({horizon,variableId:futureVarId||null,futureVariableValue:$('futureVariableValue').value===''?null:Number($('futureVariableValue').value),observations:rows.map(o=>({date:o.date,count:o.count,variableValues:o.variableValues||{}}))})});
+            if(response.ok) backendResult=await response.json();
+          }
+        } catch (err) { /* Server unavailable: continue with local formulas. */ }
+        let best; let quality;
+        if(backendResult && backendResult.ok){
+          best={name:backendResult.bestMethod,mae:backendResult.mae,predict:()=>backendResult.prediction};
+          quality=backendResult.quality;
+        } else if(candidates.length){best=[...candidates].sort((a,b)=>a.mae-b.mae)[0];quality='Evaluasi historis tersedia · lokal';}
+        else {best={name:'Weighted moving average',mae:null,predict:()=>modelForecast('Weighted moving average',values,horizon)};quality='Estimasi awal · belum cukup uji balik';}
+        const raw=best.predict(); const prediction=Math.max(0,raw);
+        const range=backendResult?.range ?? (best.mae===null?null:Math.max(0,best.mae*1.28));
+        const lower=backendResult?.lower ?? (range===null?null:Math.max(0,prediction-range)); const upper=backendResult?.upper ?? (range===null?null:prediction+range);
+        const selectedVariableUsed=backendResult?.selectedVariableUsed ?? best.name.startsWith('Regresi:');
+        const comparison=backendResult?.comparison?.length ? backendResult.comparison : [...candidates].sort((a,b)=>(a.mae??Infinity)-(b.mae??Infinity));
+        $('forecastResult').innerHTML=`<div class="eyebrow">${esc(quality)} · ${backendResult?.ok?'BACKEND PYTHON':'HITUNG LOKAL'}</div><h2 style="margin-top:5px">${esc(name)}</h2><div class="result-number">${fmt(prediction)}</div><div class="muted small">Perkiraan jumlah · ${horizon} periode ke depan</div>${range!==null?`<div class="result-range" style="margin-top:11px">Kisaran indikatif ${fmt(lower)} – ${fmt(upper)}</div>`:'<div class="result-range warning" style="margin-top:11px">Kisaran belum tersedia · data uji terbatas</div>'}<div class="divider"></div><div class="row-between"><span class="small muted">Model terpilih</span><strong style="font-size:12px">${esc(best.name)}</strong></div><div class="row-between" style="margin-top:9px"><span class="small muted">Riwayat yang digunakan</span><strong style="font-size:12px">${values.length} observasi</strong></div><div class="row-between" style="margin-top:9px"><span class="small muted">Galat absolut rata-rata</span><strong style="font-size:12px">${best.mae===null?'Belum cukup data':fmt(best.mae)}</strong></div><div class="info-box" style="margin-top:14px">${selectedVariableUsed?`Model memakai hubungan historis antara hitungan “${esc(name)}” dan variabel “${esc(varName)}”. Ini menunjukkan asosiasi statistik, bukan bukti sebab-akibat.`:'Prediksi memakai urutan hitungan historis. Variabel tambahan hanya dipakai bila terdapat minimal 6 pasangan data yang valid dan nilai masa depan diisi.'} ${values.length<8?'Data masih terbatas; masukkan observasi tambahan sebelum mengambil keputusan penting.':''}</div>`;
+        $('methodComparison').innerHTML=comparison.length?comparison.map((c,i)=>`<div class="method-row"><span class="method-name">${esc(c.name)} ${i===0?'<span class="pill">terbaik</span>':''}</span><span class="${i===0?'confidence':'muted'}">MAE ${fmt(c.mae)}</span></div>`).join(''):'<div class="empty">Uji balik akan tersedia saat riwayat lebih panjang.</div>';
+        lastForecast={name,horizon,prediction,best:best.name,mae:best.mae,lower,upper,n:values.length,createdAt:new Date().toISOString()};
+      }
+      $('runForecast').addEventListener('click', runPrediction);
+
+      $('exportBtn').addEventListener('click', () => downloadFile('nalar-backup.json', JSON.stringify({app:'NALAR',version:1,exportedAt:new Date().toISOString(),observations:state.observations,variables:state.variables},null,2),'application/json'));
+      $('exportCsvBtn').addEventListener('click', () => {
+        const headers=['tanggal','seri','jenis','jumlah','periode','keterangan',...state.variables.map(v=>v.name)];
+        const rows=state.observations.map(o=>[o.date,o.series,o.type,o.count,o.period,o.notes,...state.variables.map(v=>o.variableValues?.[v.id]??'')]);
+        const csv=[headers,...rows].map(row=>row.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\r\n');
+        downloadFile('nalar-observasi.csv','\ufeff'+csv,'text/csv;charset=utf-8');
+      });
+      $('importFile').addEventListener('change', async e => {
+        const file=e.target.files[0]; if(!file)return;
+        try { const parsed=JSON.parse(await file.text()); if(!Array.isArray(parsed.observations)||!Array.isArray(parsed.variables)) throw new Error('Format tidak sesuai'); if(!confirm('Impor akan mengganti data NALAR saat ini. Lanjutkan?')) return; state.observations=parsed.observations; state.variables=parsed.variables; saveState(); renderAll(); toast('Data berhasil diimpor.'); }
+        catch(err){toast('File JSON tidak valid atau format tidak dikenali.');}
+        finally{e.target.value='';}
+      });
+      function downloadFile(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+
+      $('themeBtn').addEventListener('click',()=>{const dark=document.documentElement.dataset.theme!=='dark';document.documentElement.dataset.theme=dark?'dark':'light';document.documentElement.style.colorScheme=dark?'dark':'light';localStorage.setItem('nalar-theme',dark?'dark':'light');toast(dark?'Tema gelap':'Tema terang');});
+      const savedTheme=localStorage.getItem('nalar-theme'); if(savedTheme){document.documentElement.dataset.theme=savedTheme;document.documentElement.style.colorScheme=savedTheme;}
+      window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;$('installBtn').classList.remove('hide');});
+      $('installBtn').addEventListener('click',async()=>{if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;}else toast('Untuk memasang di iPhone, buka situs HTTPS di Safari lalu pilih Bagikan → Tambahkan ke Layar Utama.');});
+      window.addEventListener('appinstalled',()=>toast('NALAR berhasil dipasang.'));
+
+      function renderAll(){renderObservationVariableInputs();renderObservations();renderVariables();renderDashboard();renderForecastSelectors();}
+      initDates(); renderAll();
+      if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    })();
+  </script>
+</body>
+</html>
